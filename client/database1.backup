@@ -1,0 +1,16 @@
+DROP TABLE table1;
+CREATE TABLE table1 (kolom1 string, kolom2 int, kolom3 string, kolom4 int);
+
+INSERT INTO table1 (‘abc’, 1, ‘bcd’, 2);
+INSERT INTO table1 (‘abc’, 1, ‘bcd’, 2);
+INSERT INTO table1 (‘abc’, 1, ‘bcd’, 2);
+INSERT INTO table1 (‘abc’, 1, ‘bcd’, 2);
+
+DROP TABLE table2;
+CREATE TABLE table2 (kolom1 string, kolom2 int, kolom3 string, kolom4 int);
+
+INSERT INTO table2 (‘abc’, 1, ‘bcd’, 2);
+INSERT INTO table2 (‘abc’, 1, ‘bcd’, 2);
+INSERT INTO table2 (‘abc’, 1, ‘bcd’, 2);
+INSERT INTO table2 (‘abc’, 1, ‘bcd’, 2);
+
