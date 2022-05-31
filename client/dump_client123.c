@@ -70,11 +70,11 @@ int main(int argc, char *argv[]){
 
     char buffer[20000];
     char logdata[100][10000];
-    int Check2=0;
 
     while (fgets(buffer, 20000 , fp)){
         char *token;
         char buffercopy[20000];
+        int datalong;
         snprintf(buffercopy, sizeof buffercopy, "%s", buffer);
         token = strtok(buffercopy, ":");
         int i = 0;
@@ -89,38 +89,33 @@ int main(int argc, char *argv[]){
             if (logdata[4][i] == '\n')
 				logdata[4][i+1] = '\0';
     	}
+        
+        datalong = strlen(logdata[4]);
+
+        if (logdata[4][datalong-2] == ';' && logdata[4][datalong-3] == ';'){
+            logdata[4][datalong-2] = '\n';
+            logdata[4][datalong-1] = '\0';
+        }
+
         printf("%s", logdata[4]);
         
         char *b = strstr(logdata[4], "USE");
         
         if(b != NULL){
             char *tokens;
-            char perintahCopy[20000];
-            strcpy(perintahCopy, logdata[4]);
-            tokens = strtok(perintahCopy, "; ");
-            int j=0;
-            char perintahUse[100][10000];
+            char logdata2[20000];
+            char logdatause[100][10000];
+            int controling = 0;
+
+            strcpy(logdata2, logdata[4]);
+            tokens = strtok(logdata2, "; ");
+            
             while ( tokens != NULL){
-                strcpy(perintahUse[j], tokens);
-                // printf("%s\n", perintahUse[j]);
-                j++;
+                strcpy(logdatause[controling], tokens);
+                controling++;
                 tokens = strtok(NULL, "; ");
             }
-            char databaseTarget[20000];
-            // sprintf(databaseTarget, "%s;", argv[5]);
-            // printf("%s\n", perintahUse[1]);
-            // printf("%s\n", databaseTarget);
-            if(strcmp(perintahUse[1], argv[5])==0){
-                Check2 = 1;
-            }else{
-                Check2 = 0;
-            }
         }
-        // printf("%d\n", found);
-        if(Check2 == 1){
-        //    printf("%s", buffer);
-        }
-        // printf("%s", buffer);
     }
     fclose(fp);
 }
