@@ -4,13 +4,24 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-
 #include <unistd.h>
 #include <time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #define PORT 4443
+
+int compare1(char a1[50],char a2[50]){
+	if (strcmp(a1,a2)==0)
+		return 1;
+	return 0;
+}
+int compare2(char a1[50],char a2[50], char b1[50], char b2[50]){
+	if (strcmp(a1,a2)==0)
+		if (strcmp(b1,b2)==0)
+		return 1;
+	return 0;
+}
 
 struct allowed
 {
@@ -509,28 +520,28 @@ int main()
 					}
 					else
 					{
-						char daftarQuery[100][10000];
+						char sql_Query[100][10000];
 						char copyPerintah[20000];
 						snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
 						tokens = strtok(copyPerintah, "(), ");
 						int jumlah = 0;
 						while (tokens != NULL)
 						{
-							strcpy(daftarQuery[jumlah], tokens);
-							printf("%s\n", daftarQuery[jumlah]);
+							strcpy(sql_Query[jumlah], tokens);
+							printf("%s\n", sql_Query[jumlah]);
 							jumlah++;
 							tokens = strtok(NULL, "(), ");
 						}
 						char buatTable[20000];
-						snprintf(buatTable, sizeof buatTable, "../database/databases/%s/%s", database_used, daftarQuery[2]);
+						snprintf(buatTable, sizeof buatTable, "../database/databases/%s/%s", database_used, sql_Query[2]);
 						int iterasi = 0;
 						int iterasiData = 3;
 						struct table kolom;
 						while (jumlah > 3)
 						{
-							strcpy(kolom.data[iterasi], daftarQuery[iterasiData]);
+							strcpy(kolom.data[iterasi], sql_Query[iterasiData]);
 							printf("%s\n", kolom.data[iterasi]);
-							strcpy(kolom.type[iterasi], daftarQuery[iterasiData + 1]);
+							strcpy(kolom.type[iterasi], sql_Query[iterasiData + 1]);
 							iterasiData = iterasiData + 2;
 							jumlah = jumlah - 2;
 							iterasi++;
@@ -614,7 +625,7 @@ int main()
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
-					char daftarQuery[100][10000];
+					char sql_Query[100][10000];
 					char copyPerintah[20000];
 					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
 					// printf("%s\n", copyPerintah);
@@ -623,13 +634,13 @@ int main()
 					int jumlah = 0;
 					while (tokens != NULL)
 					{
-						strcpy(daftarQuery[jumlah], tokens);
-						// printf("%s\n", daftarQuery[jumlah]);
+						strcpy(sql_Query[jumlah], tokens);
+						// printf("%s\n", sql_Query[jumlah]);
 						jumlah++;
 						tokens = strtok(NULL, "\'(), ");
 					}
 					char buatTable[20000];
-					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[2]);
+					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[2]);
 					// printf("buat table = %s\n", buatTable);
 					FILE *fp;
 					// printf("%s\n", buatTable);
@@ -654,7 +665,7 @@ int main()
 					struct table kolom;
 					while (jumlah > 3)
 					{
-						strcpy(kolom.data[iterasi], daftarQuery[iterasiData]);
+						strcpy(kolom.data[iterasi], sql_Query[iterasiData]);
 						printf("%s\n", kolom.data[iterasi]);
 						strcpy(kolom.type[iterasi], "string");
 						iterasiData++;
@@ -691,7 +702,7 @@ int main()
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
-					char daftarQuery[100][10000];
+					char sql_Query[100][10000];
 					char copyPerintah[20000];
 					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
 					// printf("%s\n", copyPerintah);
@@ -700,18 +711,18 @@ int main()
 					int jumlah = 0;
 					while (tokens != NULL)
 					{
-						strcpy(daftarQuery[jumlah], tokens);
-						printf("%s\n", daftarQuery[jumlah]);
+						strcpy(sql_Query[jumlah], tokens);
+						printf("%s\n", sql_Query[jumlah]);
 						jumlah++;
 						tokens = strtok(NULL, "\'(),= ");
 					}
 					printf("jumlah = %d\n", jumlah);
 					char buatTable[20000];
-					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[1]);
+					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[1]);
 					if (jumlah == 5)
 					{
-						printf("buat table = %s, kolumn = %s", buatTable, daftarQuery[3]);
-						int index = findColumn(buatTable, daftarQuery[3]);
+						printf("buat table = %s, kolumn = %s", buatTable, sql_Query[3]);
+						int index = findColumn(buatTable, sql_Query[3]);
 						if (index == -1)
 						{
 							char peringatan[] = "Column Not Found";
@@ -720,12 +731,12 @@ int main()
 							continue;
 						}
 						printf("index = %d\n", index);
-						updateColumn(buatTable, index, daftarQuery[4]);
+						updateColumn(buatTable, index, sql_Query[4]);
 					}
 					else if (jumlah == 8)
 					{
-						printf("buat table = %s, kolumn = %s", buatTable, daftarQuery[3]);
-						int index = findColumn(buatTable, daftarQuery[3]);
+						printf("buat table = %s, kolumn = %s", buatTable, sql_Query[3]);
+						int index = findColumn(buatTable, sql_Query[3]);
 						if (index == -1)
 						{
 							char peringatan[] = "Column Not Found";
@@ -733,9 +744,9 @@ int main()
 							bzero(buffer, sizeof(buffer));
 							continue;
 						}
-						printf("%s\n", daftarQuery[7]);
-						int indexGanti = findColumn(buatTable, daftarQuery[6]);
-						updateColumnWhere(buatTable, index, daftarQuery[4], indexGanti, daftarQuery[7]);
+						printf("%s\n", sql_Query[7]);
+						int indexGanti = findColumn(buatTable, sql_Query[6]);
+						updateColumnWhere(buatTable, index, sql_Query[4], indexGanti, sql_Query[7]);
 					}
 					else
 					{
@@ -757,7 +768,7 @@ int main()
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
-					char daftarQuery[100][10000];
+					char sql_Query[100][10000];
 					char copyPerintah[20000];
 					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
 					// printf("%s\n", copyPerintah);
@@ -766,21 +777,21 @@ int main()
 					int jumlah = 0;
 					while (tokens != NULL)
 					{
-						strcpy(daftarQuery[jumlah], tokens);
-						printf("%s\n", daftarQuery[jumlah]);
+						strcpy(sql_Query[jumlah], tokens);
+						printf("%s\n", sql_Query[jumlah]);
 						jumlah++;
 						tokens = strtok(NULL, "\'(),= ");
 					}
 					printf("jumlah = %d\n", jumlah);
 					char buatTable[20000];
-					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[2]);
+					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[2]);
 					if (jumlah == 3)
 					{
 						deleteTable(buatTable);
 					}
 					else if (jumlah == 6)
 					{
-						int index = findColumn(buatTable, daftarQuery[4]);
+						int index = findColumn(buatTable, sql_Query[4]);
 						if (index == -1)
 						{
 							char peringatan[] = "Column Not Found";
@@ -789,7 +800,7 @@ int main()
 							continue;
 						}
 						printf("index  = %d\n", index);
-						deleteTableWhere(buatTable, index, daftarQuery[4], daftarQuery[5]);
+						deleteTableWhere(buatTable, index, sql_Query[4], sql_Query[5]);
 					}
 					else
 					{
@@ -802,167 +813,122 @@ int main()
 					send(newSocket, peringatan, strlen(peringatan), 0);
 					bzero(buffer, sizeof(buffer));
 				}
-				else if (strcmp(perintah[0], "select") == 0)
-				{
-					if (database_used[0] == '\0')
-					{
-						strcpy(database_used, "You're not selecting database yet");
-						send(newSocket, database_used, strlen(database_used), 0);
-						bzero(buffer, sizeof(buffer));
-						continue;
-					}
-					char daftarQuery[100][10000];
-					char copyPerintah[20000];
-					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
-					// printf("%s\n", copyPerintah);
+				else if (compare2(perintah[0], "select",database_used[0] ,'\0')){
+					send(newSocket, "Tidak ada database yang digunakan", strlen("Tidak ada database yang digunakan"), 0);
+					bzero(buffer, sizeof(buffer));
+					continue;
+				}
+				else if (compare1(perintah[0],"select")){
+					char sql_Query[150][15000];
+					char log_perintah[20000];
+					snprintf(log_perintah, sizeof log_perintah, "%s", perintah[1]);
 					char *tokens;
-					tokens = strtok(copyPerintah, "\'(),= ");
-					int jumlah = 0;
-					while (tokens != NULL)
-					{
-						strcpy(daftarQuery[jumlah], tokens);
-						printf("%s\n", daftarQuery[jumlah]);
-						jumlah++;
+					tokens = strtok(log_perintah, "\'(),= ");
+					int countingdata = 0;
+
+					while (tokens != NULL) {
+						strcpy(sql_Query[countingdata], tokens);
+						countingdata++;
 						tokens = strtok(NULL, "\'(),= ");
 					}
-					printf("ABC\n");
-					if (jumlah == 4)
-					{
-						char buatTable[20000];
-						snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[3]);
-						printf("buat table = %s", buatTable);
-						char perintahKolom[1000];
-						printf("masuk 4\n");
-						if (strcmp(daftarQuery[1], "*") == 0)
-						{
-							// showTableAll(buatTable, "ALL");
+
+					if (countingdata == 4) {
+						char TableColomn[20000], perintahKolom[1000];
+						snprintf(TableColomn, sizeof TableColomn, "databases/%s/%s", database_used, sql_Query[3]);
+						if (compare1(sql_Query[1], "*")){
 							FILE *fp, *fp1;
+							char buffers[40000], DatabaseSending[40000];
 							struct table user;
 							int id, found = 0;
-							fp = fopen(buatTable, "rb");
-							char buffers[40000];
-							char sendDatabase[40000];
+							fp = fopen(TableColomn, "rb");
 							bzero(buffer, sizeof(buffer));
-							bzero(sendDatabase, sizeof(sendDatabase));
-							while (1)
-							{
-								char enter[] = "\n";
-								// bzero(enter, sizeof(enter));
+							bzero(DatabaseSending, sizeof(DatabaseSending));
+							while (1) {
 								fread(&user, sizeof(user), 1, fp);
 								snprintf(buffers, sizeof buffers, "\n");
-								// send(newSocket, enter, strlen(enter), 0);
 								if (feof(fp))
-								{
 									break;
-								}
-								for (int i = 0; i < user.jumlahkolom; i++)
-								{
+								for (int i = 0; i < user.jumlahkolom; i++) {
 									char padding[20000];
 									snprintf(padding, sizeof padding, "%s\t", user.data[i]);
 									strcat(buffers, padding);
-									// send(newSocket, buffer, strlen(buffer), 0);
-									// bzero(buffer, sizeof(buffer));
 								}
-								// printf("%s", buffers);
-								strcat(sendDatabase, buffers);
+								strcat(DatabaseSending, buffers);
 							}
-							// printf("ini send fix\n%s\n", sendDatabase);
-							send(newSocket, sendDatabase, strlen(sendDatabase), 0);
-							bzero(sendDatabase, sizeof(sendDatabase));
+							send(newSocket, DatabaseSending, strlen(DatabaseSending), 0);
+							bzero(DatabaseSending, sizeof(DatabaseSending));
 							bzero(buffer, sizeof(buffer));
 							fclose(fp);
 						}
-						else
-						{
-							// showTable(buatTable, perintah[1]);
-							int index = findColumn(buatTable, daftarQuery[1]);
-							printf("%d\n", index);
+						else {
+							int index = findColumn(TableColomn, sql_Query[1]);
 							FILE *fp, *fp1;
 							struct table user;
 							int id, found = 0;
-							fp = fopen(buatTable, "rb");
 							char buffers[40000];
-							char sendDatabase[40000];
+							char DatabaseSending[40000];
+							fp = fopen(TableColomn, "rb");
 							bzero(buffer, sizeof(buffer));
-							bzero(sendDatabase, sizeof(sendDatabase));
-							while (1)
-							{
-								char enter[] = "\n";
-								// bzero(enter, sizeof(enter));
+							bzero(DatabaseSending, sizeof(DatabaseSending));
+							while (1) {
 								fread(&user, sizeof(user), 1, fp);
 								snprintf(buffers, sizeof buffers, "\n");
-								// send(newSocket, enter, strlen(enter), 0);
 								if (feof(fp))
-								{
 									break;
-								}
-								for (int i = 0; i < user.jumlahkolom; i++)
-								{
-									if (i == index)
-									{
+								int i;
+								while(i<user.jumlahkolom){
+									if (i == index){
 										char padding[20000];
 										snprintf(padding, sizeof padding, "%s\t", user.data[i]);
 										strcat(buffers, padding);
 									}
-									// send(newSocket, buffer, strlen(buffer), 0);
-									// bzero(buffer, sizeof(buffer));
-								}
-								// printf("%s", buffers);
-								strcat(sendDatabase, buffers);
+									i++;
+								}	
+								strcat(DatabaseSending, buffers);
 							}
-							printf("ini send fix\n%s\n", sendDatabase);
 							fclose(fp);
-							send(newSocket, sendDatabase, strlen(sendDatabase), 0);
-							bzero(sendDatabase, sizeof(sendDatabase));
+							send(newSocket, DatabaseSending, strlen(DatabaseSending), 0);
+							bzero(DatabaseSending, sizeof(DatabaseSending));
 							bzero(buffer, sizeof(buffer));
 						}
 					}
-					else if (jumlah == 7 && strcmp(daftarQuery[4], "WHERE") == 0)
+					else if (countingdata == 7 && strcmp(sql_Query[4], "WHERE") == 0)
 					{
 						char buatTable[20000];
-						snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[3]);
+						snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[3]);
 						printf("buat table = %s", buatTable);
 						char perintahKolom[1000];
 						printf("masuk 4\n");
-						if (strcmp(daftarQuery[1], "*") == 0)
+						if (strcmp(sql_Query[1], "*") == 0)
 						{
-							// showTableAll(buatTable, "ALL");
 							FILE *fp, *fp1;
 							struct table user;
 							int id, found = 0;
 							fp = fopen(buatTable, "rb");
 							char buffers[40000];
 							char sendDatabase[40000];
-							int index = findColumn(buatTable, daftarQuery[5]);
+							int index = findColumn(buatTable, sql_Query[5]);
 							printf("%d\n", index);
 							bzero(buffer, sizeof(buffer));
 							bzero(sendDatabase, sizeof(sendDatabase));
 							while (1)
 							{
-								char enter[] = "\n";
-								// bzero(enter, sizeof(enter));
 								fread(&user, sizeof(user), 1, fp);
 								snprintf(buffers, sizeof buffers, "\n");
-								// send(newSocket, enter, strlen(enter), 0);
 								if (feof(fp))
-								{
 									break;
-								}
-								for (int i = 0; i < user.jumlahkolom; i++)
-								{
-									if (strcmp(user.data[index], daftarQuery[6]) == 0)
+								int i = 0;
+								while (i<user.jumlahkolom){
+									if (strcmp(user.data[index], sql_Query[6]) == 0)
 									{
 										char padding[20000];
 										snprintf(padding, sizeof padding, "%s\t", user.data[i]);
 										strcat(buffers, padding);
 									}
-									// send(newSocket, buffer, strlen(buffer), 0);
-									// bzero(buffer, sizeof(buffer));
+									i++;
 								}
-								// printf("%s", buffers);
 								strcat(sendDatabase, buffers);
 							}
-							// printf("ini send fix\n%s\n", sendDatabase);
 							send(newSocket, sendDatabase, strlen(sendDatabase), 0);
 							bzero(sendDatabase, sizeof(sendDatabase));
 							bzero(buffer, sizeof(buffer));
@@ -970,13 +936,12 @@ int main()
 						}
 						else
 						{
-							// showTable(buatTable, perintah[1]);
-							int index = findColumn(buatTable, daftarQuery[1]);
+							int index = findColumn(buatTable, sql_Query[1]);
 							printf("%d\n", index);
 							FILE *fp, *fp1;
 							struct table user;
 							int id, found = 0;
-							int indexGanti = findColumn(buatTable, daftarQuery[5]);
+							int indexGanti = findColumn(buatTable, sql_Query[5]);
 							fp = fopen(buatTable, "rb");
 							char buffers[40000];
 							char sendDatabase[40000];
@@ -985,29 +950,22 @@ int main()
 							while (1)
 							{
 								char enter[] = "\n";
-								// bzero(enter, sizeof(enter));
 								fread(&user, sizeof(user), 1, fp);
 								snprintf(buffers, sizeof buffers, "\n");
-								// send(newSocket, enter, strlen(enter), 0);
 								if (feof(fp))
-								{
 									break;
-								}
-								for (int i = 0; i < user.jumlahkolom; i++)
-								{
-									if (i == index && (strcmp(user.data[indexGanti], daftarQuery[6]) == 0 || strcmp(user.data[i], daftarQuery[5]) == 0))
+								int i =1;
+								while(i<user.jumlahkolom){
+									if (i == index && (strcmp(user.data[indexGanti], sql_Query[6]) == 0 || strcmp(user.data[i], sql_Query[5]) == 0))
 									{
 										char padding[20000];
 										snprintf(padding, sizeof padding, "%s\t", user.data[i]);
 										strcat(buffers, padding);
 									}
-									// send(newSocket, buffer, strlen(buffer), 0);
-									// bzero(buffer, sizeof(buffer));
+									i++;
 								}
-								// printf("%s", buffers);
 								strcat(sendDatabase, buffers);
 							}
-							printf("ini send fix\n%s\n", sendDatabase);
 							fclose(fp);
 							send(newSocket, sendDatabase, strlen(sendDatabase), 0);
 							bzero(sendDatabase, sizeof(sendDatabase));
@@ -1016,43 +974,31 @@ int main()
 					}
 					else
 					{
-						printf("ini query 3 %s", daftarQuery[jumlah - 3]);
-						if (strcmp(daftarQuery[jumlah - 3], "WHERE") != 0)
+
+						if (strcmp(sql_Query[countingdata - 3], "WHERE") != 0)
 						{
 							char buatTable[20000];
-							snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[jumlah - 1]);
-							printf("buat table = %s", buatTable);
-							printf("tanpa where");
+							snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[countingdata - 1]);
 							int index[100];
-							int iterasi = 0;
-							for (int i = 1; i < jumlah - 2; i++)
-							{
-								index[iterasi] = findColumn(buatTable, daftarQuery[i]);
-								printf("%d\n", index[iterasi]);
-								iterasi++;
+							int i = 1;
+							while (i < countingdata -2){
+								index[i-1] = findColumn(buatTable, sql_Query[i]);
+								printf("%d\n", index[i-1]);
+								i++;
 							}
 						}
-						else if (strcmp(daftarQuery[jumlah - 3], "WHERE") == 0)
+						else if (strcmp(sql_Query[countingdata - 3], "WHERE") == 0)
 						{
 							printf("dengan where");
 						}
 					}
 				}
-				else if (strcmp(perintah[0], "log") == 0)
-				{
-					writelog(perintah[1], perintah[2]);
-					char peringatan[] = "\n";
-					send(newSocket, peringatan, strlen(peringatan), 0);
-					bzero(buffer, sizeof(buffer));
-				}
-				if (strcmp(buffer, ":exit") == 0)
-				{
-					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+				if (strcmp(buffer, ":exit") == 0){
+					printf("koneksi server %s : %d telah hilang\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
 					break;
 				}
-				else
-				{
-					printf("Client: %s\n", buffer);
+				else {
+					printf("Client message : %s\n", buffer);
 					send(newSocket, buffer, strlen(buffer), 0);
 					bzero(buffer, sizeof(buffer));
 				}
