@@ -1,3 +1,5 @@
-## HAHA
+# FINAL DESTINATION
 
-testing 1
+Sesuci hati, sebening air, github kami juga suci mas mbak. terimakasih 
+
+`bismillah dapet A`
