@@ -47,7 +47,6 @@ void createUser(char *name, char *pass)
 	struct allowed user;
 	strcpy(user.name, name);
 	strcpy(user.password, pass);
-	printf("User created : %s | password : %s\n", user.name, user.password);
 
 	FILE *fp;
 	fp = fopen("databases/user.dat", "ab");
@@ -83,7 +82,6 @@ void insertPermission(char *name, char *database)
 	struct allowed_database user;
 	strcpy(user.name, name);
 	strcpy(user.database, database);
-	printf("User : %s | Granted Permission on %s\n", user.name, user.database);
 
 	FILE *fp;
 	fp = fopen("databases/permission.dat", "ab");
@@ -94,7 +92,6 @@ void insertPermission(char *name, char *database)
 int cekAllowedDatabase(char *name, char *database)
 {
 	struct allowed_database user;
-	printf("User : %s | AllowedDatabase : %s", name, database);
 
 	FILE *fp;
 	fp = fopen("../database/databases/permission.dat", "rb");
@@ -133,13 +130,12 @@ int findColumn(char *table, char *kolom)
 			fclose(fp);
 		}
 	}
-	if (feof(fp))
-	{
-		fclose(fp);
-		return -1;
-	}
+
+	fclose(fp);
+	return -1;
 }
 
+// ??
 int deleteColumn(char *table, int index)
 {
 	struct table user;
@@ -151,22 +147,30 @@ int deleteColumn(char *table, int index)
 	fread(&user, sizeof(user), 1, fp);
 	if (feof(fp))
 	{
-		return ;
+		fclose(fp);
+		fclose(fp1);
+
+		// replace table awal dgn table temp yang baru
+		remove(table);
+		rename("temp", table);
+		return 0;
 	}
 
 	struct table userCopy;
 	int indeksCopy = 0;
-	for (int i = 0; i < user.jumlahkolom; i++)
+	int j = 0;
+	while (j < user.jumlahkolom)
 	{
-		// skip duplikat column yang diremove
-		if (i == index)
+		// skip column misal index remove
+		if (j == index)
 		{
-			continue;
+			j++;
 		}
 		// duplikat data column table
-		strcpy(userCopy.data[indeksCopy], user.data[i]);
-		strcpy(userCopy.type[indeksCopy], user.type[i]);
+		strcpy(userCopy.data[indeksCopy], user.data[j]);
+		strcpy(userCopy.type[indeksCopy], user.type[j]);
 		indeksCopy++;
+		j++
 	}
 	userCopy.jumlahkolom = user.jumlahkolom - 1;
 	fwrite(&userCopy, sizeof(userCopy), 1, fp1);
@@ -211,12 +215,13 @@ int deleteTable(char *table)
 
 int updateColumn(char *table, int index, char *ganti)
 {
-	FILE *fp, *fp1;
 	struct table user;
-	int id, found = 0;
+
+	FILE *fp, *fp1;
 	fp = fopen(table, "rb");
 	fp1 = fopen("temp", "ab");
-	int datake = 0;
+
+	int inpo = 0; // >0 brarti msk ke inpo data dr column tsb
 	while (1)
 	{
 		fread(&user, sizeof(user), 1, fp);
@@ -226,24 +231,26 @@ int updateColumn(char *table, int index, char *ganti)
 		}
 		struct table userCopy;
 		int iterasi = 0;
-		for (int i = 0; i < user.jumlahkolom; i++)
+
+		int j = 0;
+		while (j < user.jumlahkolom)
 		{
-			if (i == index && datake != 0)
+			if (j == index && inpo != 0)
 			{
 				strcpy(userCopy.data[iterasi], ganti);
 			}
 			else
 			{
-				strcpy(userCopy.data[iterasi], user.data[i]);
+				strcpy(userCopy.data[iterasi], user.data[j]);
 			}
-			printf("%s\n", userCopy.data[iterasi]);
-			strcpy(userCopy.type[iterasi], user.type[i]);
-			printf("%s\n", userCopy.data[iterasi]);
+			strcpy(userCopy.type[iterasi], user.type[j]);
 			iterasi++;
+			j++;
 		}
+
 		userCopy.jumlahkolom = user.jumlahkolom;
 		fwrite(&userCopy, sizeof(userCopy), 1, fp1);
-		datake++;
+		inpo++;
 	}
 	fclose(fp);
 	fclose(fp1);
@@ -254,12 +261,12 @@ int updateColumn(char *table, int index, char *ganti)
 
 int updateColumnWhere(char *table, int index, char *ganti, int indexGanti, char *where)
 {
-	FILE *fp, *fp1;
 	struct table user;
-	int id, found = 0;
+
+	FILE *fp, *fp1;
 	fp = fopen(table, "rb");
 	fp1 = fopen("temp", "ab");
-	int datake = 0;
+	int inpo = 0; // Column atau datanya
 	while (1)
 	{
 		fread(&user, sizeof(user), 1, fp);
@@ -269,24 +276,25 @@ int updateColumnWhere(char *table, int index, char *ganti, int indexGanti, char 
 		}
 		struct table userCopy;
 		int iterasi = 0;
-		for (int i = 0; i < user.jumlahkolom; i++)
+		int j = 0;
+		while (j < user.jumlahkolom)
 		{
-			if (i == index && datake != 0 && strcmp(user.data[indexGanti], where) == 0)
+			if (j == index && inpo != 0 && strcmp(user.data[indexGanti], where) == 0)
 			{
 				strcpy(userCopy.data[iterasi], ganti);
 			}
 			else
 			{
-				strcpy(userCopy.data[iterasi], user.data[i]);
+				strcpy(userCopy.data[iterasi], user.data[j]);
 			}
-			printf("%s\n", userCopy.data[iterasi]);
-			strcpy(userCopy.type[iterasi], user.type[i]);
-			printf("%s\n", userCopy.data[iterasi]);
+			strcpy(userCopy.type[iterasi], user.type[j]);
 			iterasi++;
+			j++;
 		}
+
 		userCopy.jumlahkolom = user.jumlahkolom;
 		fwrite(&userCopy, sizeof(userCopy), 1, fp1);
-		datake++;
+		inpo++;
 	}
 	fclose(fp);
 	fclose(fp1);
@@ -313,18 +321,19 @@ int deleteTableWhere(char *table, int index, char *kolom, char *where)
 		}
 		struct table userCopy;
 		int iterasi = 0;
-		for (int i = 0; i < user.jumlahkolom; i++)
+		int j = 0;
+		while (j < user.jumlahkolom)
 		{
-			if (i == index && datake != 0 && strcmp(user.data[i], where) == 0)
+			if (j == index && datake != 0 && strcmp(user.data[j], where) == 0)
 			{
 				found = 1;
 			}
-			strcpy(userCopy.data[iterasi], user.data[i]);
-			printf("%s\n", userCopy.data[iterasi]);
-			strcpy(userCopy.type[iterasi], user.type[i]);
-			printf("%s\n", userCopy.data[iterasi]);
+			strcpy(userCopy.data[iterasi], user.data[j]);
+			strcpy(userCopy.type[iterasi], user.type[j]);
 			iterasi++;
+			j++;
 		}
+
 		userCopy.jumlahkolom = user.jumlahkolom;
 		if (found != 1)
 		{
@@ -339,7 +348,7 @@ int deleteTableWhere(char *table, int index, char *kolom, char *where)
 	return 0;
 }
 
-void writelog(char *perintah, char *nama)
+void writelog(char *perintah, char *name)
 {
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -348,14 +357,13 @@ void writelog(char *perintah, char *nama)
 
 	char infoWriteLog[1000];
 
-	FILE *file;
-	file = fopen("logUser.log", "ab");
+	FILE *fp;
+	fp = fopen("logUser.log", "ab");
 
-	sprintf(infoWriteLog, "%d-%.2d-%.2d %.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, perintah);
-	// sprintf(infoWriteLog, "%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, filepath);
+	sprintf(infoWriteLog, "%d-%.2d-%.2d %.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, name, perintah);
 
-	fputs(infoWriteLog, file);
-	fclose(file);
+	fputs(infoWriteLog, fp);
+	fclose(fp);
 	return;
 }
 
@@ -425,50 +433,40 @@ int main()
 				strcpy(buffercopy, buffer);
 				char perintah[100][10000];
 				token = strtok(buffercopy, ":");
-				int i = 0;
+				int j = 0;
 				char database_used[1000];
 				while (token != NULL)
 				{
-					strcpy(perintah[i], token);
-					// printf("%s\n", perintah[i]);
-					i++;
+					strcpy(perintah[j], token);
+					j++;
 					token = strtok(NULL, ":");
 				}
-				if (strcmp(perintah[0], "cUser") == 0)
+				if (strcmp(perintah[0], "cUser") == 0 && strcmp(perintah[3], "0") == 0)
 				{
-					if (strcmp(perintah[3], "0") == 0)
+					createUser(perintah[1], perintah[2]);
+				}
+				else if (strcmp(perintah[0], "cUser") == 0)
+				{
+					send(newSocket, "Ga berhak", strlen("Ga berhak"), 0);
+					bzero(buffer, sizeof(buffer));
+				}
+				else if (strcmp(perintah[0], "gPermission") == 0 && strcmp(perintah[3], "0") == 0)
+				{
+					int exist = cekUserExist(perintah[2]);
+					if (exist == 1)
 					{
-						createUser(perintah[1], perintah[2]);
+						insertPermission(perintah[2], perintah[1]);
 					}
 					else
 					{
-						char peringatan[] = "You're Not Allowed";
-						send(newSocket, peringatan, strlen(peringatan), 0);
+						send(newSocket, "User ga ada", strlen("User ga ada"), 0);
 						bzero(buffer, sizeof(buffer));
 					}
 				}
 				else if (strcmp(perintah[0], "gPermission") == 0)
 				{
-					if (strcmp(perintah[3], "0") == 0)
-					{
-						int exist = cekUserExist(perintah[2]);
-						if (exist == 1)
-						{
-							insertPermission(perintah[2], perintah[1]);
-						}
-						else
-						{
-							char peringatan[] = "User Not Found";
-							send(newSocket, peringatan, strlen(peringatan), 0);
-							bzero(buffer, sizeof(buffer));
-						}
-					}
-					else
-					{
-						char peringatan[] = "You're Not Allowed";
-						send(newSocket, peringatan, strlen(peringatan), 0);
-						bzero(buffer, sizeof(buffer));
-					}
+					send(newSocket, "Ga berhak", strlen("Ga berhak"), 0);
+					bzero(buffer, sizeof(buffer));
 				}
 				else if (strcmp(perintah[0], "cDatabase") == 0)
 				{
@@ -478,90 +476,80 @@ int main()
 					mkdir(lokasi, 0777);
 					insertPermission(perintah[2], perintah[1]);
 				}
-				else if (strcmp(perintah[0], "uDatabase") == 0)
+				else if (strcmp(perintah[0], "uDatabase") == 0 && strcmp(perintah[3], "0") != 0)
 				{
-					if (strcmp(perintah[3], "0") != 0)
+					int allowed = cekAllowedDatabase(perintah[2], perintah[1]);
+					if (allowed != 1)
 					{
-						int allowed = cekAllowedDatabase(perintah[2], perintah[1]);
-						if (allowed != 1)
-						{
-							char peringatan[] = "Access_database : You're Not Allowed";
-							send(newSocket, peringatan, strlen(peringatan), 0);
-							bzero(buffer, sizeof(buffer));
-						}
-						else
-						{
-							strncpy(database_used, perintah[1], sizeof(perintah[1]));
-							char peringatan[] = "Access_database : Allowed";
-							printf("database_used = %s\n", database_used);
-							send(newSocket, peringatan, strlen(peringatan), 0);
-							bzero(buffer, sizeof(buffer));
-						}
+						send(newSocket, "Access_database : Ga berhak", strlen("Access_database : Ga berhak"), 0);
+						bzero(buffer, sizeof(buffer));
 					}
+					else
+					{
+						strcpy(database_used, perintah[1]);
+						send(newSocket, "Access_database : Berhak", strlen("Access_database : Berhak"), 0);
+						bzero(buffer, sizeof(buffer));
+					}
+				}
+				else if (strcmp(perintah[0], "cekCurrentDatabase") == 0 && database_used[0] == '\0')
+				{
+					send(newSocket, "Tidak ada database yang digunakan", strlen("Tidak ada database yang digunakan"), 0);
+					bzero(buffer, sizeof(buffer));
 				}
 				else if (strcmp(perintah[0], "cekCurrentDatabase") == 0)
 				{
-					if (database_used[0] == '\0')
-					{
-						strcpy(database_used, "You're not selecting database yet");
-					}
+					send(newSocket, database_used, strlen(database_used), 0);
+					bzero(buffer, sizeof(buffer));
+				}
+				else if (strcmp(perintah[0], "cTable") == 0 && database_used[0] == '\0')
+				{
+					char *tokens;
+					strcpy(database_used, "Tidak ada database yang digunakan");
 					send(newSocket, database_used, strlen(database_used), 0);
 					bzero(buffer, sizeof(buffer));
 				}
 				else if (strcmp(perintah[0], "cTable") == 0)
 				{
-					printf("%s\n", perintah[1]);
 					char *tokens;
-					if (database_used[0] == '\0')
+					char daftarQuery[100][10000];
+					char copyPerintah[20000];
+					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
+					tokens = strtok(copyPerintah, "(), ");
+					int jumlah = 0;
+					while (tokens != NULL)
 					{
-						strcpy(database_used, "You're not selecting database yet");
-						send(newSocket, database_used, strlen(database_used), 0);
-						bzero(buffer, sizeof(buffer));
+						strcpy(daftarQuery[jumlah], tokens);
+						printf("%s\n", daftarQuery[jumlah]);
+						jumlah++;
+						tokens = strtok(NULL, "(), ");
 					}
-					else
+					char buatTable[20000];
+					snprintf(buatTable, sizeof buatTable, "../database/databases/%s/%s", database_used, daftarQuery[2]);
+					int iterasi = 0;
+					int iterasiData = 3;
+					struct table kolom;
+					while (jumlah > 3)
 					{
-						char sql_Query[100][10000];
-						char copyPerintah[20000];
-						snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
-						tokens = strtok(copyPerintah, "(), ");
-						int jumlah = 0;
-						while (tokens != NULL)
-						{
-							strcpy(sql_Query[jumlah], tokens);
-							printf("%s\n", sql_Query[jumlah]);
-							jumlah++;
-							tokens = strtok(NULL, "(), ");
-						}
-						char buatTable[20000];
-						snprintf(buatTable, sizeof buatTable, "../database/databases/%s/%s", database_used, sql_Query[2]);
-						int iterasi = 0;
-						int iterasiData = 3;
-						struct table kolom;
-						while (jumlah > 3)
-						{
-							strcpy(kolom.data[iterasi], sql_Query[iterasiData]);
-							printf("%s\n", kolom.data[iterasi]);
-							strcpy(kolom.type[iterasi], sql_Query[iterasiData + 1]);
-							iterasiData = iterasiData + 2;
-							jumlah = jumlah - 2;
-							iterasi++;
-						}
-						kolom.jumlahkolom = iterasi;
-						printf("iterasi = %d\n", iterasi);
-						FILE *fp;
-						printf("%s\n", buatTable);
-						fp = fopen(buatTable, "ab");
-						fwrite(&kolom, sizeof(kolom), 1, fp);
-						fclose(fp);
+						strcpy(kolom.data[iterasi], daftarQuery[iterasiData]);
+						printf("%s\n", kolom.data[iterasi]);
+						strcpy(kolom.type[iterasi], daftarQuery[iterasiData + 1]);
+						iterasiData = iterasiData + 2;
+						jumlah = jumlah - 2;
+						iterasi++;
 					}
+					kolom.jumlahkolom = iterasi;
+					printf("iterasi = %d\n", iterasi);
+					FILE *fp;
+					fp = fopen(buatTable, "ab");
+					fwrite(&kolom, sizeof(kolom), 1, fp);
+					fclose(fp);
 				}
 				else if (strcmp(perintah[0], "dDatabase") == 0)
 				{
 					int allowed = cekAllowedDatabase(perintah[2], perintah[1]);
 					if (allowed != 1)
 					{
-						char peringatan[] = "Access_database : You're Not Allowed";
-						send(newSocket, peringatan, strlen(peringatan), 0);
+						send(newSocket, "Database ga berhak", strlen("Database ga berhak"), 0);
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
@@ -575,81 +563,70 @@ int main()
 						bzero(buffer, sizeof(buffer));
 					}
 				}
+				else if (strcmp(perintah[0], "dTable") == 0 && database_used[0] == '\0')
+				{
+					send(newSocket, "Tidak ada database yang digunakan", strlen("Tidak ada database yang digunakan"), 0);
+					bzero(buffer, sizeof(buffer));
+					continue;
+				}
 				else if (strcmp(perintah[0], "dTable") == 0)
 				{
-					if (database_used[0] == '\0')
-					{
-						strcpy(database_used, "You're not selecting database yet");
-						send(newSocket, database_used, strlen(database_used), 0);
-						bzero(buffer, sizeof(buffer));
-						continue;
-					}
 					char hapus[20000];
 					snprintf(hapus, sizeof hapus, "databases/%s/%s", database_used, perintah[1]);
 					remove(hapus);
-					char peringatan[] = "Table Has Been Removed";
-					send(newSocket, peringatan, strlen(peringatan), 0);
+					send(newSocket, "Table dah dihapus", strlen("Table dah dihapus"), 0);
 					bzero(buffer, sizeof(buffer));
+				}
+				else if (strcmp(perintah[0], "dColumn") == 0 && database_used[0] == '\0')
+				{
+					send(newSocket, "Tidak ada database yang digunakan", strlen("Tidak ada database yang digunakan"), 0);
+					bzero(buffer, sizeof(buffer));
+					continue;
 				}
 				else if (strcmp(perintah[0], "dColumn") == 0)
 				{
-					if (database_used[0] == '\0')
-					{
-						strcpy(database_used, "You're not selecting database yet");
-						send(newSocket, database_used, strlen(database_used), 0);
-						bzero(buffer, sizeof(buffer));
-						continue;
-					}
 					char pathTable[20000];
 					snprintf(pathTable, sizeof pathTable, "databases/%s/%s", database_used, perintah[2]);
 					int index = findColumn(pathTable, perintah[1]);
 					if (index == -1)
 					{
-						char peringatan[] = "Column Not Found";
-						send(newSocket, peringatan, strlen(peringatan), 0);
+						send(newSocket, "Column ga nemu", strlen("Column ga nemu"), 0);
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
-					// printf("%d\n", index);
 					deleteColumn(pathTable, index);
-					char peringatan[] = "Column Has Been Removed";
-					send(newSocket, peringatan, strlen(peringatan), 0);
+					send(newSocket, "Column dah dihapus", strlen("Column dah dihapus"), 0);
 					bzero(buffer, sizeof(buffer));
+				}
+				else if (strcmp(perintah[0], "insert") == 0 && database_used[0] == '\0')
+				{
+					send(newSocket, "Tidak ada database yang digunakan", strlen("Tidak ada database yang digunakan"), 0);
+					bzero(buffer, sizeof(buffer));
+					continue;
 				}
 				else if (strcmp(perintah[0], "insert") == 0)
 				{
-					if (database_used[0] == '\0')
-					{
-						strcpy(database_used, "You're not selecting database yet");
-						send(newSocket, database_used, strlen(database_used), 0);
-						bzero(buffer, sizeof(buffer));
-						continue;
-					}
-					char sql_Query[100][10000];
+					char daftarQuery[100][10000];
 					char copyPerintah[20000];
 					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
-					// printf("%s\n", copyPerintah);
 					char *tokens;
 					tokens = strtok(copyPerintah, "\'(), ");
 					int jumlah = 0;
 					while (tokens != NULL)
 					{
-						strcpy(sql_Query[jumlah], tokens);
-						// printf("%s\n", sql_Query[jumlah]);
+						strcpy(daftarQuery[jumlah], tokens);
 						jumlah++;
 						tokens = strtok(NULL, "\'(), ");
 					}
 					char buatTable[20000];
-					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[2]);
-					// printf("buat table = %s\n", buatTable);
-					FILE *fp;
-					// printf("%s\n", buatTable);
+					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[2]);
 					int banyakKolom;
+
+					FILE *fp;
 					fp = fopen(buatTable, "r");
 					if (fp == NULL)
 					{
-						char peringatan[] = "TABLE NOT FOUND";
-						send(newSocket, peringatan, strlen(peringatan), 0);
+						send(newSocket, "TABLE NOT FOUND", strlen("TABLE NOT FOUND"), 0);
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
@@ -665,98 +642,83 @@ int main()
 					struct table kolom;
 					while (jumlah > 3)
 					{
-						strcpy(kolom.data[iterasi], sql_Query[iterasiData]);
+						strcpy(kolom.data[iterasi], daftarQuery[iterasiData]);
 						printf("%s\n", kolom.data[iterasi]);
 						strcpy(kolom.type[iterasi], "string");
 						iterasiData++;
-						jumlah = jumlah - 1;
+						jumlah--;
 						iterasi++;
 					}
 					kolom.jumlahkolom = iterasi;
-					// printf("iterasi = %d\n", iterasi);
-					// printf("%d\n", user.jumlahkolom);
 					if (banyakKolom != kolom.jumlahkolom)
 					{
-						char peringatan[] = "YOUR INPUT NOT MATCH THE COLUMN";
-						send(newSocket, peringatan, strlen(peringatan), 0);
+						send(newSocket, "Input tidak sesuai", strlen("Input tidak sesuai"), 0);
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
-					// fwrite(&kolom,sizeof(kolom),1,fp);
-					printf("iterasi = %d\n", iterasi);
 					FILE *fp1;
-					printf("%s\n", buatTable);
 					fp1 = fopen(buatTable, "ab");
 					fwrite(&kolom, sizeof(kolom), 1, fp1);
 					fclose(fp1);
-					char peringatan[] = "Data Has Been Inserted";
-					send(newSocket, peringatan, strlen(peringatan), 0);
+					send(newSocket, "Data dah masuk", strlen("Data dah masuk"), 0);
 					bzero(buffer, sizeof(buffer));
+				}
+				else if (strcmp(perintah[0], "update") == 0 && database_used[0] == '\0')
+				{
+					send(newSocket, "Tidak ada database yang digunakan", strlen("Tidak ada database yang digunakan"), 0);
+					bzero(buffer, sizeof(buffer));
+					continue;
 				}
 				else if (strcmp(perintah[0], "update") == 0)
 				{
-					if (database_used[0] == '\0')
-					{
-						strcpy(database_used, "You're not selecting database yet");
-						send(newSocket, database_used, strlen(database_used), 0);
-						bzero(buffer, sizeof(buffer));
-						continue;
-					}
-					char sql_Query[100][10000];
+					char daftarQuery[100][10000];
 					char copyPerintah[20000];
 					snprintf(copyPerintah, sizeof copyPerintah, "%s", perintah[1]);
-					// printf("%s\n", copyPerintah);
 					char *tokens;
 					tokens = strtok(copyPerintah, "\'(),= ");
 					int jumlah = 0;
 					while (tokens != NULL)
 					{
-						strcpy(sql_Query[jumlah], tokens);
-						printf("%s\n", sql_Query[jumlah]);
+						strcpy(daftarQuery[jumlah], tokens);
+						printf("%s\n", daftarQuery[jumlah]);
 						jumlah++;
 						tokens = strtok(NULL, "\'(),= ");
 					}
-					printf("jumlah = %d\n", jumlah);
 					char buatTable[20000];
-					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, sql_Query[1]);
+					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[1]);
 					if (jumlah == 5)
 					{
-						printf("buat table = %s, kolumn = %s", buatTable, sql_Query[3]);
-						int index = findColumn(buatTable, sql_Query[3]);
+						int index = findColumn(buatTable, daftarQuery[3]);
 						if (index == -1)
 						{
-							char peringatan[] = "Column Not Found";
-							send(newSocket, peringatan, strlen(peringatan), 0);
+							send(newSocket, "Column ga nemu", strlen("Column ga nemu"), 0);
 							bzero(buffer, sizeof(buffer));
 							continue;
 						}
 						printf("index = %d\n", index);
-						updateColumn(buatTable, index, sql_Query[4]);
+						updateColumn(buatTable, index, daftarQuery[4]);
 					}
 					else if (jumlah == 8)
 					{
-						printf("buat table = %s, kolumn = %s", buatTable, sql_Query[3]);
-						int index = findColumn(buatTable, sql_Query[3]);
+						printf("buat table = %s, kolumn = %s", buatTable, daftarQuery[3]);
+						int index = findColumn(buatTable, daftarQuery[3]);
 						if (index == -1)
 						{
-							char peringatan[] = "Column Not Found";
-							send(newSocket, peringatan, strlen(peringatan), 0);
+							send(newSocket, "Column ga nemu", strlen("Column ga nemu"), 0);
 							bzero(buffer, sizeof(buffer));
 							continue;
 						}
-						printf("%s\n", sql_Query[7]);
-						int indexGanti = findColumn(buatTable, sql_Query[6]);
-						updateColumnWhere(buatTable, index, sql_Query[4], indexGanti, sql_Query[7]);
+						printf("%s\n", daftarQuery[7]);
+						int indexGanti = findColumn(buatTable, daftarQuery[6]);
+						updateColumnWhere(buatTable, index, daftarQuery[4], indexGanti, daftarQuery[7]);
 					}
 					else
 					{
-						char peringatan[] = "Data Has Been Deleted";
-						send(newSocket, peringatan, strlen(peringatan), 0);
+						send(newSocket, "Data dah dihapus", strlen("Data dah dihapus"), 0);
 						bzero(buffer, sizeof(buffer));
 						continue;
 					}
-					char peringatan[] = "Data Has Been Updated";
-					send(newSocket, peringatan, strlen(peringatan), 0);
+					send(newSocket, "Data dah diupdate", strlen("Data dah diupdate"), 0);
 					bzero(buffer, sizeof(buffer));
 				}
 				else if (strcmp(perintah[0], "delete") == 0)
