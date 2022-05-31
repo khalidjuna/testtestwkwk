@@ -140,7 +140,7 @@ int deleteColumn(char *table, int index)
 	fread(&user, sizeof(user), 1, fp);
 	if (feof(fp))
 	{
-		break;
+		return ;
 	}
 
 	struct table userCopy;
@@ -776,7 +776,7 @@ int main()
 					snprintf(buatTable, sizeof buatTable, "databases/%s/%s", database_used, daftarQuery[2]);
 					if (jumlah == 3)
 					{
-						deleteTable(buatTable, daftarQuery[2]);
+						deleteTable(buatTable);
 					}
 					else if (jumlah == 6)
 					{
