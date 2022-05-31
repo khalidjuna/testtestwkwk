@@ -10,24 +10,26 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <time.h>
-
 #define PORT 4443
+
+int AuthentikasiCheck();
 
 struct allowed{
 	char name[10000];
 	char password[10000];
 };
 
-int cekAllowed(char *username, char *password){
+int AuthentikasiCheck(char *username, char *password){
 	FILE *fp;
 	struct allowed user;
-	int id,found=0;
+	int usercheck = 0;
+
 	fp=fopen("../database/databases/user.dat","rb");
-	while(1){	
+    while(1){	
 		fread(&user,sizeof(user),1,fp);
 		if(strcmp(user.name, username)==0){
 			if(strcmp(user.password, password)==0){
-				found=1;
+				usercheck = 1;
 			}
 		}
 		if(feof(fp)){
@@ -35,58 +37,66 @@ int cekAllowed(char *username, char *password){
 		}
 	}
 	fclose(fp);
-	if(found==0){
-		printf("You're Not Allowed\n");
+	if(usercheck == 0){
+		printf("Authentikasi Ditolak\n");
 		return 0;
 	}else{
+        printf("Authentikasi Diterima, selamat datang %s\n",username);
 		return 1;
 	}
 }
 
 int main(int argc, char *argv[]){
-	int allowed=0;
+	int usercheck=0;
 	int id_user = geteuid();
 	char database_used[1000];
 	if(geteuid() == 0){
-		allowed=1;
-	}else{
-		int id = geteuid();
-		allowed = cekAllowed(argv[2],argv[4]);
+		usercheck=1;
+        printf("Authentikasi Diterima");
 	}
-	if(allowed==0){
+    else{
+		int id = geteuid();
+		usercheck = AuthentikasiCheck(argv[2],argv[4]);
+	}
+
+	if(usercheck==0){
 		return 0;
 	}
+
     FILE *fp;
-    char lokasi[10000];
-	snprintf(lokasi, sizeof lokasi, "../database/log/log%s.log", argv[2]);
-    fp = fopen(lokasi, "rb");
+    char path[10000];
+	snprintf(path, sizeof path, "../database/log/log%s.log", argv[2]);
+    fp = fopen(path, "rb");
+
     char buffer[20000];
-    char perintah[100][10000];
-    int found=0;
+    char logdata[100][10000];
+    int Check2=0;
+
     while (fgets(buffer, 20000 , fp)){
         char *token;
         char buffercopy[20000];
         snprintf(buffercopy, sizeof buffercopy, "%s", buffer);
         token = strtok(buffercopy, ":");
-        int i=0;
+        int i = 0;
+        
         while ( token != NULL){
-            strcpy(perintah[i], token);
-			//printf("%s\n", perintah[i]);
+            strcpy(logdata[i], token);
 			i++;
 			token = strtok(NULL, ":");
         }
-	for(int loop = 0; loop < strlen(perintah[4]); loop++){
-		//printf ("%c", perintah[4][loop]);
-		if (perintah[4][loop] == '\n')
-				perintah[4][loop+1] = '\0';
-	}
 
-        printf("%s", perintah[4]);
-        char *b = strstr(perintah[4], "USE");
+	    for(i = 0; i < strlen(logdata[4]); i++){
+            if (logdata[4][i] == '\n')
+				logdata[4][i+1] = '\0';
+    	}
+        printf("%s", logdata[4]);
+        
+        char *b = strstr(logdata[4], "USE");
+        
         if(b != NULL){
             char *tokens;
             char perintahCopy[20000];
-            strcpy(perintahCopy, perintah[4]);
+            strcpy(perintahCopy, logdata[4]);
             tokens = strtok(perintahCopy, "; ");
             int j=0;
             char perintahUse[100][10000];
@@ -101,13 +111,13 @@ int main(int argc, char *argv[]){
             // printf("%s\n", perintahUse[1]);
             // printf("%s\n", databaseTarget);
             if(strcmp(perintahUse[1], argv[5])==0){
-                found = 1;
+                Check2 = 1;
             }else{
-                found = 0;
+                Check2 = 0;
             }
         }
         // printf("%d\n", found);
-        if(found == 1){
+        if(Check2 == 1){
         //    printf("%s", buffer);
         }
         // printf("%s", buffer);
